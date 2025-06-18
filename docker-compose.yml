@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:10.6
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE
+      MYSQL_USER: ${MYSQL_USER}
+
+  nextcloud:
+    image: nextcloud
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE
+      MYSQL_USER: ${MYSQL_USER}
+    expose:
+      - 80
+    depends_on:
+      - db
+    links:
+      - db
+
+  caddy:
+    image: caddy:2
+    restart: always
+    ports:
+      -"5000:80"
+      - "8443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - nextcloud
+      
+volumes:
+  db:
+  nextcloud:
